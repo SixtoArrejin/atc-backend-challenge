@@ -1,7 +1,7 @@
 import { Inject, Logger } from '@nestjs/common';
 import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
 
-import { ClubUpdatedEvent } from '../events/club-updated.event';
+import { CourtUpdatedEvent } from '../events/court-updated.event';
 import {
   ALQUILA_TU_CANCHA_CLIENT,
   AlquilaTuCanchaClient,
@@ -11,9 +11,9 @@ import {
   AvailabilityCache,
 } from '../ports/availability-cache.port';
 
-@EventsHandler(ClubUpdatedEvent)
-export class ClubUpdatedHandler implements IEventHandler<ClubUpdatedEvent> {
-  private readonly logger = new Logger(ClubUpdatedHandler.name);
+@EventsHandler(CourtUpdatedEvent)
+export class CourtUpdatedHandler implements IEventHandler<CourtUpdatedEvent> {
+  private readonly logger = new Logger(CourtUpdatedHandler.name);
 
   constructor(
     @Inject(ALQUILA_TU_CANCHA_CLIENT)
@@ -22,11 +22,10 @@ export class ClubUpdatedHandler implements IEventHandler<ClubUpdatedEvent> {
     private cache: AvailabilityCache,
   ) {}
 
-  async handle(event: ClubUpdatedEvent) {
+  async handle(event: CourtUpdatedEvent) {
     this.logger.log(
-      `Club ${event.clubId} updated (fields: ${event.fields.join(', ')})`,
+      `Court ${event.courtId} of club ${event.clubId} updated (fields: ${event.fields.join(', ')})`,
     );
-    // If openhours or attributes change, update courts and metadata in cache
     try {
       const updatedCourts = await this.client.getCourts(event.clubId);
       this.cache.setCourts(event.clubId, updatedCourts);
