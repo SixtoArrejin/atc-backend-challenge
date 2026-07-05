@@ -6,6 +6,8 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { ClubUpdatedHandler } from './domain/handlers/club-updated.handler';
 import { GetAvailabilityHandler } from './domain/handlers/get-availability.handler';
 import { ALQUILA_TU_CANCHA_CLIENT } from './domain/ports/aquila-tu-cancha.client';
+import { AVAILABILITY_CACHE } from './domain/ports/availability-cache.port';
+import { InMemoryAvailabilityCache } from './infrastructure/cache/in-memory-availability.cache';
 import { HTTPAlquilaTuCanchaClient } from './infrastructure/clients/http-alquila-tu-cancha.client';
 import { EventsController } from './infrastructure/controllers/events.controller';
 import { SearchController } from './infrastructure/controllers/search.controller';
@@ -17,6 +19,10 @@ import { SearchController } from './infrastructure/controllers/search.controller
     {
       provide: ALQUILA_TU_CANCHA_CLIENT,
       useClass: HTTPAlquilaTuCanchaClient,
+    },
+    {
+      provide: AVAILABILITY_CACHE,
+      useClass: InMemoryAvailabilityCache,
     },
     GetAvailabilityHandler,
     ClubUpdatedHandler,

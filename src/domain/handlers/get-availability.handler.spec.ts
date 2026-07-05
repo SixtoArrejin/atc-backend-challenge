@@ -1,5 +1,6 @@
 import * as moment from 'moment';
 
+import { InMemoryAvailabilityCache } from '../../infrastructure/cache/in-memory-availability.cache';
 import { AlquilaTuCanchaClient } from '../../domain/ports/aquila-tu-cancha.client';
 import { GetAvailabilityQuery } from '../commands/get-availaiblity.query';
 import { Club } from '../model/club';
@@ -10,10 +11,12 @@ import { GetAvailabilityHandler } from './get-availability.handler';
 describe('GetAvailabilityHandler', () => {
   let handler: GetAvailabilityHandler;
   let client: FakeAlquilaTuCanchaClient;
+  let cache: InMemoryAvailabilityCache;
 
   beforeEach(() => {
     client = new FakeAlquilaTuCanchaClient();
-    handler = new GetAvailabilityHandler(client);
+    cache = new InMemoryAvailabilityCache();
+    handler = new GetAvailabilityHandler(client, cache);
   });
 
   it('returns the availability', async () => {
