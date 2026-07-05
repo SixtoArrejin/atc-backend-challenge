@@ -38,16 +38,56 @@ describe('GetAvailabilityHandler', () => {
 
     expect(response).toEqual([{ id: 1, courts: [{ id: 1, available: [] }] }]);
   });
+
+  it('returns empty array when client.getClubs fails gracefully (Mock API down or 429)', async () => {
+    client.shouldFailClubs = true;
+    const placeId = '123';
+    const date = moment('2022-12-05').toDate();
+
+    const response = await handler.execute(
+      new GetAvailabilityQuery(placeId, date),
+    );
+
+    expect(response).toEqual([]);
+  });
+
+  it('returns partial availability gracefully when fetching slots fails', async () => {
+    client.clubs = {
+      '123': [{ id: 1 }],
+    };
+    client.courts = {
+      '1': [{ id: 1 }],
+    };
+    client.shouldFailSlots = true;
+    const placeId = '123';
+    const date = moment('2022-12-05').toDate();
+
+    const response = await handler.execute(
+      new GetAvailabilityQuery(placeId, date),
+    );
+
+    expect(response).toEqual([{ id: 1, courts: [{ id: 1, available: [] }] }]);
+  });
 });
 
 class FakeAlquilaTuCanchaClient implements AlquilaTuCanchaClient {
   clubs: Record<string, Club[]> = {};
   courts: Record<string, Court[]> = {};
   slots: Record<string, Slot[]> = {};
+  shouldFailClubs = false;
+  shouldFailCourts = false;
+  shouldFailSlots = false;
+
   async getClubs(placeId: string): Promise<Club[]> {
+    if (this.shouldFailClubs) {
+      throw new Error('Mock API Down / Rate limit 429');
+    }
     return this.clubs[placeId];
   }
   async getCourts(clubId: number): Promise<Court[]> {
+    if (this.shouldFailCourts) {
+      throw new Error('Mock API Down / Rate limit 429');
+    }
     return this.courts[String(clubId)];
   }
   async getAvailableSlots(
@@ -55,6 +95,9 @@ class FakeAlquilaTuCanchaClient implements AlquilaTuCanchaClient {
     courtId: number,
     date: Date,
   ): Promise<Slot[]> {
+    if (this.shouldFailSlots) {
+      throw new Error('Mock API Down / Rate limit 429');
+    }
     return this.slots[
       `${clubId}_${courtId}_${moment(date).format('YYYY-MM-DD')}`
     ];
