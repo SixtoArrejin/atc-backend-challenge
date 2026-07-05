@@ -1,4 +1,4 @@
-import { Inject } from '@nestjs/common';
+import { Inject, Logger } from '@nestjs/common';
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import * as moment from 'moment';
 
@@ -19,6 +19,8 @@ import {
 export class GetAvailabilityHandler
   implements IQueryHandler<GetAvailabilityQuery>
 {
+  private readonly logger = new Logger(GetAvailabilityHandler.name);
+
   constructor(
     @Inject(ALQUILA_TU_CANCHA_CLIENT)
     private alquilaTuCanchaClient: AlquilaTuCanchaClient,
@@ -31,28 +33,49 @@ export class GetAvailabilityHandler
 
     let clubs = this.cache.getClubs(query.placeId);
     if (!clubs) {
-      clubs = await this.alquilaTuCanchaClient.getClubs(query.placeId);
-      this.cache.setClubs(query.placeId, clubs);
+      try {
+        clubs = await this.alquilaTuCanchaClient.getClubs(query.placeId);
+        this.cache.setClubs(query.placeId, clubs);
+      } catch (err) {
+        this.logger.error(
+          `Failed to fetch clubs for placeId ${query.placeId}: ${err.message}`,
+        );
+        return [];
+      }
     }
 
     return Promise.all(
       clubs.map(async (club) => {
         let courts = this.cache.getCourts(club.id);
         if (!courts) {
-          courts = await this.alquilaTuCanchaClient.getCourts(club.id);
-          this.cache.setCourts(club.id, courts);
+          try {
+            courts = await this.alquilaTuCanchaClient.getCourts(club.id);
+            this.cache.setCourts(club.id, courts);
+          } catch (err) {
+            this.logger.error(
+              `Failed to fetch courts for club ${club.id}: ${err.message}`,
+            );
+            courts = [];
+          }
         }
 
         const courts_with_availability = await Promise.all(
           courts.map(async (court) => {
             let slots = this.cache.getSlots(club.id, court.id, dateStr);
             if (!slots) {
-              slots = await this.alquilaTuCanchaClient.getAvailableSlots(
-                club.id,
-                court.id,
-                query.date,
-              );
-              this.cache.setSlots(club.id, court.id, dateStr, slots);
+              try {
+                slots = await this.alquilaTuCanchaClient.getAvailableSlots(
+                  club.id,
+                  court.id,
+                  query.date,
+                );
+                this.cache.setSlots(club.id, court.id, dateStr, slots);
+              } catch (err) {
+                this.logger.error(
+                  `Failed to fetch slots for club ${club.id}, court ${court.id}: ${err.message}`,
+                );
+                slots = [];
+              }
             }
 
             return {

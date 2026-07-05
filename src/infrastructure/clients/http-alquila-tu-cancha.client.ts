@@ -20,6 +20,7 @@ export class HTTPAlquilaTuCanchaClient implements AlquilaTuCanchaClient {
       .get('clubs', {
         baseURL: this.base_url,
         params: { placeId },
+        timeout: 10000,
       })
       .then((res) => res.data);
   }
@@ -28,6 +29,7 @@ export class HTTPAlquilaTuCanchaClient implements AlquilaTuCanchaClient {
     return this.httpService.axiosRef
       .get(`/clubs/${clubId}/courts`, {
         baseURL: this.base_url,
+        timeout: 10000,
       })
       .then((res) => res.data);
   }
@@ -41,6 +43,7 @@ export class HTTPAlquilaTuCanchaClient implements AlquilaTuCanchaClient {
       .get(`/clubs/${clubId}/courts/${courtId}/slots`, {
         baseURL: this.base_url,
         params: { date: moment(date).format('YYYY-MM-DD') },
+        timeout: 10000,
       })
       .then((res) => res.data);
   }
