@@ -84,6 +84,16 @@ class FakeAlquilaTuCanchaClient implements AlquilaTuCanchaClient {
     }
     return this.clubs[placeId];
   }
+  async getClub(clubId: number): Promise<Club> {
+    if (this.shouldFailClubs) {
+      throw new Error('Mock API Down / Rate limit 429');
+    }
+    for (const placeClubs of Object.values(this.clubs)) {
+      const found = placeClubs.find((c) => c.id === clubId);
+      if (found) return found;
+    }
+    return { id: clubId } as Club;
+  }
   async getCourts(clubId: number): Promise<Court[]> {
     if (this.shouldFailCourts) {
       throw new Error('Mock API Down / Rate limit 429');
