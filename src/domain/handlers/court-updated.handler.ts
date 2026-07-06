@@ -26,6 +26,7 @@ export class CourtUpdatedHandler implements IEventHandler<CourtUpdatedEvent> {
     this.logger.log(
       `Court ${event.courtId} of club ${event.clubId} updated (fields: ${event.fields.join(', ')})`,
     );
+    this.cache.invalidateCourt(event.clubId, event.courtId);
     try {
       const updatedCourts = await this.client.getCourts(event.clubId);
       this.cache.setCourts(event.clubId, updatedCourts);

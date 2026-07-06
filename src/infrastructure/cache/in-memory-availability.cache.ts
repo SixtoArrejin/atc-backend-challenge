@@ -47,6 +47,16 @@ export class InMemoryAvailabilityCache implements AvailabilityCache {
     this.clubsByPlace.set(placeId, clubs);
   }
 
+  updateClubInfo(clubId: number, updatedClub: Club): void {
+    for (const [placeId, clubs] of this.clubsByPlace.entries()) {
+      const index = clubs.findIndex((c) => c.id === clubId);
+      if (index !== -1) {
+        clubs[index] = updatedClub;
+        this.clubsByPlace.set(placeId, clubs);
+      }
+    }
+  }
+
   getCourts(clubId: number): Court[] | null {
     return this.courtsByClub.get(clubId) ?? null;
   }
@@ -105,5 +115,23 @@ export class InMemoryAvailabilityCache implements AvailabilityCache {
     if (!existing) return;
     const updated = existing.filter((s) => s.start !== slot.start);
     this.slotsByCourtAndDate.set(key, updated);
+  }
+
+  invalidateClub(clubId: number): void {
+    this.courtsByClub.delete(clubId);
+    for (const key of this.slotsByCourtAndDate.keys()) {
+      if (key.startsWith(`${clubId}_`)) {
+        this.slotsByCourtAndDate.delete(key);
+      }
+    }
+  }
+
+  invalidateCourt(clubId: number, courtId: number): void {
+    this.courtsByClub.delete(clubId);
+    for (const key of this.slotsByCourtAndDate.keys()) {
+      if (key.startsWith(`${clubId}_${courtId}_`)) {
+        this.slotsByCourtAndDate.delete(key);
+      }
+    }
   }
 }

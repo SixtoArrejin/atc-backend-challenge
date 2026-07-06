@@ -38,7 +38,6 @@ describe('InMemoryAvailabilityCache', () => {
     const pastDateStr = moment().subtract(1, 'day').format('YYYY-MM-DD');
 
     cache.setSlots(1, 10, pastDateStr, [sampleSlot]);
-    // getSlots invoca a cleanStaleSlots, eliminando la entrada de fecha pasada
     expect(cache.getSlots(1, 10, pastDateStr)).toBeNull();
   });
 
@@ -57,5 +56,35 @@ describe('InMemoryAvailabilityCache', () => {
 
     cache.removeSlot(1, 10, validDateStr, sampleSlot);
     expect(cache.getSlots(1, 10, validDateStr)).toEqual([]);
+  });
+
+  it('invalidates all courts and slots when invalidateClub is called', () => {
+    const validDateStr = moment().add(1, 'day').format('YYYY-MM-DD');
+    cache.setCourts(1, [{ id: 10 }]);
+    cache.setSlots(1, 10, validDateStr, [sampleSlot]);
+
+    cache.invalidateClub(1);
+
+    expect(cache.getCourts(1)).toBeNull();
+    expect(cache.getSlots(1, 10, validDateStr)).toBeNull();
+  });
+
+  it('invalidates specific court slots when invalidateCourt is called', () => {
+    const validDateStr = moment().add(1, 'day').format('YYYY-MM-DD');
+    cache.setCourts(1, [{ id: 10 }]);
+    cache.setSlots(1, 10, validDateStr, [sampleSlot]);
+
+    cache.invalidateCourt(1, 10);
+
+    expect(cache.getSlots(1, 10, validDateStr)).toBeNull();
+  });
+
+  it('updates single club info surgically without invalidating courts or slots', () => {
+    cache.setClubs('place_1', [{ id: 10, name: 'Old Club Name' } as any]);
+    cache.updateClubInfo(10, { id: 10, name: 'New Club Name' } as any);
+
+    expect(cache.getClubs('place_1')).toEqual([
+      { id: 10, name: 'New Club Name' },
+    ]);
   });
 });

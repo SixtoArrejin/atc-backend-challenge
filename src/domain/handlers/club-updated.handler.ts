@@ -26,13 +26,24 @@ export class ClubUpdatedHandler implements IEventHandler<ClubUpdatedEvent> {
     this.logger.log(
       `Club ${event.clubId} updated (fields: ${event.fields.join(', ')})`,
     );
-    // If openhours or attributes change, update courts and metadata in cache
+
+    if (
+      event.fields.includes('openhours') ||
+      event.fields.includes('open_hours' as any)
+    ) {
+      this.logger.log(
+        `Invalidating cache for club ${event.clubId} due to openhours update`,
+      );
+      this.cache.invalidateClub(event.clubId);
+      return;
+    }
+
     try {
-      const updatedCourts = await this.client.getCourts(event.clubId);
-      this.cache.setCourts(event.clubId, updatedCourts);
+      const updatedClub = await this.client.getClub(event.clubId);
+      this.cache.updateClubInfo(event.clubId, updatedClub);
     } catch (err) {
       this.logger.error(
-        `Failed to refresh courts for club ${event.clubId}: ${err.message}`,
+        `Failed to refresh metadata for club ${event.clubId}: ${err.message}`,
       );
     }
   }

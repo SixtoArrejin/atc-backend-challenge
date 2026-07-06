@@ -25,6 +25,15 @@ export class HTTPAlquilaTuCanchaClient implements AlquilaTuCanchaClient {
       .then((res) => res.data);
   }
 
+  getClub(clubId: number): Promise<Club> {
+    return this.httpService.axiosRef
+      .get(`/clubs/${clubId}`, {
+        baseURL: this.base_url,
+        timeout: 10000,
+      })
+      .then((res) => res.data);
+  }
+
   getCourts(clubId: number): Promise<Court[]> {
     return this.httpService.axiosRef
       .get(`/clubs/${clubId}/courts`, {
