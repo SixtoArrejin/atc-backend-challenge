@@ -24,7 +24,9 @@ export class CourtUpdatedHandler implements IEventHandler<CourtUpdatedEvent> {
 
   async handle(event: CourtUpdatedEvent) {
     this.logger.log(
-      `Court ${event.courtId} of club ${event.clubId} updated (fields: ${event.fields.join(', ')})`,
+      `Court ${event.courtId} of club ${
+        event.clubId
+      } updated (fields: ${event.fields.join(', ')})`,
     );
     this.cache.invalidateCourt(event.clubId, event.courtId);
     try {

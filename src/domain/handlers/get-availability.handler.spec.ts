@@ -1,7 +1,7 @@
 import * as moment from 'moment';
 
-import { InMemoryAvailabilityCache } from '../../infrastructure/cache/in-memory-availability.cache';
 import { AlquilaTuCanchaClient } from '../../domain/ports/aquila-tu-cancha.client';
+import { InMemoryAvailabilityCache } from '../../infrastructure/cache/in-memory-availability.cache';
 import { GetAvailabilityQuery } from '../commands/get-availaiblity.query';
 import { Club } from '../model/club';
 import { Court } from '../model/court';
